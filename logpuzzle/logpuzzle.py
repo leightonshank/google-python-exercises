@@ -24,8 +24,18 @@ def read_urls(filename):
   extracting the hostname from the filename itself.
   Screens out duplicate urls and returns the urls sorted into
   increasing order."""
-  # +++your code here+++
-  
+
+  server_name = 'http://' + filename.split('_')[1]
+
+  puzzle_urls = []
+  f = open(filename, 'rU')
+  for line in f:
+    match = re.search('GET (\S+puzzle\S+) HTTP', line)
+    if match:
+      puzzle_url = server_name + match.group(1)
+      if not puzzle_url in puzzle_urls: puzzle_urls.append(puzzle_url)
+  f.close()
+  return sorted(puzzle_urls)
 
 def download_images(img_urls, dest_dir):
   """Given the urls already in the correct order, downloads
@@ -35,8 +45,25 @@ def download_images(img_urls, dest_dir):
   with an img tag to show each local image file.
   Creates the directory if necessary.
   """
-  # +++your code here+++
-  
+  if not os.path.exists(dest_dir): os.mkdir(dest_dir)
+
+  index_file = open(os.path.join(dest_dir, 'index.html'), 'w')
+  index_file.write("<html><body>")
+
+  img_num = 0
+  for img_url in img_urls:
+    ufile = urllib.urlopen(img_url)
+
+    img_filename = 'img'+str(img_num)
+    ofile = open(os.path.join(dest_dir, img_filename), 'w')
+    ofile.write(ufile.read())
+    ofile.close()
+
+    index_file.write('<img src="'+img_filename+'" />')
+    img_num += 1
+
+  index_file.write("</body></html>")
+  index_file.close()
 
 def main():
   args = sys.argv[1:]
